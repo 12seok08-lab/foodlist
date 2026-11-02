@@ -13,6 +13,7 @@
    | `SUPABASE_URL` | 프로젝트 URL | 연결 주소 |
    | `SUPABASE_ANON_KEY` | anon 키 (또는 `sb_publishable_…`) | 조회 · 검색 (RLS 읽기 정책 적용) |
    | `SUPABASE_SERVICE_ROLE_KEY` | service_role 키 (또는 `sb_secret_…`) | 추가 · 삭제 |
+   | `ADMIN_PASSWORD` | 직접 정한 비밀번호 (선택) | 넣으면 추가 · 삭제 때 묻는다 |
 
    `VITE_` 로 시작하지 않는 이름이라 브라우저 코드에는 들어가지 않는다
 3. 이 폴더에서 패키지 설치
@@ -30,6 +31,13 @@ npm run dev
 브라우저에서 http://127.0.0.1:3000 을 연다. 코드를 고치면 바로 반영된다.
 (`npm start` 는 빌드한 뒤 같은 주소로 실행)
 
+## Vercel 배포
+
+- Application Preset: **Vite** (빌드 `vite build`, 출력 `dist`)
+- `/api/*` 는 `api/products/` 의 Vercel 함수가 처리한다 (`server.js` 는 Vercel 에서 실행되지 않음)
+- Vercel → Settings → Environment Variables 에 `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_PASSWORD` 입력 후 다시 배포
+- 배포 사이트는 누구나 열 수 있으므로 `ADMIN_PASSWORD` 를 꼭 넣는다 (없으면 누구나 추가 · 삭제 가능)
+
 ## 기능
 
 | 기능 | 위치 |
@@ -43,7 +51,9 @@ npm run dev
 ## 구조
 
 ```
-server.js            로컬 서버: /api/* 를 Supabase REST 로 전달 + 페이지 제공
+server.js            로컬 서버: /api/* 처리 + 페이지 제공
+lib/api.js           /api/* 처리 (Supabase REST 호출). 로컬 서버와 Vercel 함수가 함께 사용
+api/products/        Vercel 함수 (index.js: 목록 · 추가, [id].js: 상세 · 삭제)
 src/App.jsx          화면 전체 상태
 src/components/      Filters · ProductList · ProductDetail · ProductForm · AllergenChips
 src/constants.js     선택지 (schema.sql 의 check 제약과 같게 유지)
